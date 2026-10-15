@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Campus Gear | Equipment lending</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="masthead"><div class="shell headrow"><div class="brand"><span class="mark">CG</span><span>Campus Gear<small>Equipment lending ledger</small></span></div><span class="pill">Ethereum DApp</span></div></header>
+  <main class="shell">
+    <section class="hero"><div class="eyebrow">SHARED RESOURCES · CLEAR RECORDS</div><h1>Borrow equipment.<br><em>Keep everyone in the loop.</em></h1><p>Request a campus device, receive custodian approval, and record its return on the blockchain.</p></section>
+    <section class="panel connection"><div><h2>Wallet & contract</h2><p id="connectionText">Connect MetaMask to begin.</p><p class="meta" id="networkText"></p></div><div class="connectActions"><button id="connectBtn" class="primary">Connect MetaMask</button><button id="refreshBtn" class="secondary" disabled>Refresh data</button></div></section>
+    <div id="notice" class="notice" role="status" aria-live="polite">Enter your deployed contract address in <code>config.js</code>, then connect your wallet.</div>
+    <section class="grid"><div class="panel"><div class="sectionHead"><div><span class="eyebrow">01 / INVENTORY</span><h2>Available equipment</h2></div><span id="itemTotal" class="count">0 items</span></div><div id="itemList" class="list empty">Connect to load equipment.</div></div>
+      <div class="panel"><div class="sectionHead"><div><span class="eyebrow">02 / ACTIVITY</span><h2>Loan requests</h2></div><span id="loanTotal" class="count">0 loans</span></div><div id="loanList" class="list empty">Connect to load loans.</div></div></section>
+    <section class="grid forms"><div class="panel"><span class="eyebrow">BORROWER</span><h2>Request an item</h2><p>Select an item and a future due date (within 30 days).</p><form id="requestForm"><label>Equipment<select id="itemSelect" required><option value="">Choose an item</option></select></label><label>Due date and time<input id="dueAt" type="datetime-local" required></label><button class="primary" type="submit">Request loan</button></form></div>
+      <div class="panel"><span class="eyebrow">CUSTODIAN</span><h2>Add equipment</h2><p>Only the wallet that deployed the contract can add items and approve loans.</p><form id="addForm"><label>Equipment name<input id="itemName" maxlength="80" placeholder="e.g. DSLR camera kit" required></label><button class="primary" type="submit">Add item</button></form></div></section>
+    <footer>Public records contain item names, wallet addresses, and loan dates. Do not enter private student details.</footer>
+  </main>
+  <script type="module" src="app.js"></script>
+</body>
+</html>

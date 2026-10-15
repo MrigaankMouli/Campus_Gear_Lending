@@ -1,0 +1,7 @@
+
+> campus-gear-lending@1.0.0 test
+> node tests/integration.cjs
+
+signers ready
+deployed
+PASS: local Ganache deployment, full lifecycle, cancellation, invalid and unauthorised calls
