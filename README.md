@@ -1,70 +1,147 @@
-# Campus Gear Lending
+# Campus Gear Lending DApp
 
-A simple Ethereum DApp for lending shared campus equipment. A custodian lists equipment and approves requests. A borrower requests a loan, marks the item returned, and the custodian confirms physical receipt. The contract prevents two open requests for the same item. This is an original coursework implementation; equipment labels and wallet addresses are public on-chain.
+Campus Gear Lending is an Ethereum decentralised application (DApp) for managing shared campus equipment such as cameras, projectors, and laboratory devices. It records who requested an item, whether the custodian approved the loan, and whether the equipment has been returned.
 
-## Project files
+## Problem addressed
 
-| File | Purpose |
-| --- | --- |
-| `contracts/CampusGearLending.sol` | Solidity contract (compiler 0.8.20 or newer within 0.8.x) |
-| `frontend/index.html`, `styles.css`, `app.js`, `config.js` | Interface and MetaMask connection with Ethers.js v6 |
-| `tests/CampusGearLending_test.sol` | Remix Solidity Unit Testing cases |
-| `tests/integration.cjs`, `package.json` | Repeatable local Ganache integration test |
-| `DEPLOYMENT.md` | Fill in actual network, address and transaction hashes |
-| `evidence/README.md` | Screenshot checklist |
-| `submission/README.md` | Required Word/PDF cover sheet instructions |
+Equipment lending managed through paper registers or messages can lead to conflicting reservations, unclear responsibility, and disagreements about returns. This DApp maintains a shared on-chain record and applies the same lending rules to every wallet. An item can have only one open request or loan, and a borrower cannot release it for someone else merely by claiming to have returned it.
 
-## Workflow
+The blockchain makes recorded actions traceable to wallet addresses and enforces permissions and valid state changes. It does not verify student identity, equipment condition, or physical handover. Those responsibilities remain with the campus custodian.
 
-1. Custodian (the deploying wallet) adds an item.
-2. Borrower chooses an available item and due date up to 30 days away.
-3. Custodian approves the pending request before its due date. Either custodian or borrower can cancel a pending request.
-4. Borrower marks an active loan returned; custodian verifies physical return and closes it.
-5. Item becomes available again. Disabling an item prevents approval and new requests; a current loan can still be closed.
+## How the application works
 
-IDs start at **1**. The contract stores no private keys, names of students, or file uploads. It does not itself prove physical delivery or return.
+There are two roles:
 
-## Deploy with Remix and MetaMask
+- **Custodian:** the wallet that deploys the contract. It adds equipment, enables or disables lending, approves requests, and confirms physical returns. This address is fixed for the lifetime of the contract.
+- **Borrower:** any other wallet. It can request available equipment, cancel its pending request, and mark its active loan returned. The contract does not maintain a student membership list.
 
-1. Open [Remix](https://remix.ethereum.org/). Create the `contracts/CampusGearLending.sol` file in a Remix workspace and paste in the supplied source.
-2. In **Solidity Compiler**, choose compiler **0.8.20** (or a later 0.8.x), select `CampusGearLending.sol`, and compile. Save the compilation screenshot.
-3. In MetaMask, select a test network such as **Sepolia** with test ETH, or connect MetaMask to a local **Ganache** RPC network. Check the **decimal chain ID** shown in MetaMask (Ganache configuration varies). Never use real funds for coursework.
-4. In **Deploy & Run Transactions**, use **Browser Extension** / **Injected Provider - MetaMask** (the label may vary), verify the selected account and network, select `CampusGearLending`, and click **Deploy**. Confirm in MetaMask. Save the contract address and deployment transaction hash in `DEPLOYMENT.md`.
-5. Enter the deployed address and decimal chain ID in `frontend/config.js`. The ABI in `frontend/app.js` is already provided for the contract. If you change the Solidity public API, update the ABI too.
-6. From the `frontend` directory run `python3 -m http.server 8000`, then visit `http://localhost:8000` in the browser with MetaMask. A local server is needed for JavaScript modules. The page loads Ethers.js v6 from a CDN, so internet access is needed.
-7. Connect the **same network** in MetaMask. Use the deploying wallet to add an item. Switch to a second wallet to request a loan. Switch back to approve it. Switch to the borrower to mark return, then to the custodian to confirm it. Use **Refresh data** after switching; MetaMask account/network changes also reload the page.
-8. Record transaction hashes and screenshots. The frontend shows public item and loan data by calling contract view functions. A reverted transaction may be blocked during gas estimation; for a failed transaction screenshot use a valid pending request and try to approve it from an unauthorised account in Remix, then capture the revert message. Avoid spending gas solely to produce a failed on-chain receipt.
+A typical loan follows this sequence:
 
-**Ganache note:** Ganache may need to bind to an address that MetaMask can reach and its chain ID must match `config.js`. If you import a Ganache test account, its private key stays only in your local MetaMask. Never add it to this repository.
+1. The custodian adds an equipment name. The contract assigns an item ID and makes it available.
+2. A borrower selects the item and a future due date no more than 30 days from the current block timestamp. The request immediately reserves the item.
+3. The custodian approves the pending request before its due date, recording an active loan. Physical handover happens outside the application.
+4. After returning the equipment, the borrower selects **Mark returned**. The item remains reserved while receipt is being verified.
+5. The custodian checks the physical return and selects **Confirm return**. The loan closes and the item can be requested again if it is enabled.
 
-## Run tests in Remix
-
-Copy both `contracts/` and `tests/` into the same Remix workspace, preserving the relative paths. Activate the **Solidity Unit Testing** plugin, select `tests/CampusGearLending_test.sol`, and run it. The test file imports `remix_tests.sol`, which the plugin supplies. These tests run in Remix's isolated test environment; deployment to Sepolia or Ganache is a separate step. Save the test result screenshot and add the **observed** results below after running. The results listed here are expected behaviour, not claims of an executed run.
-
-For an independent automated local check, run `npm install` and `npm test` in the repository root. The integration test compiles with Solidity 0.8.20, deploys to an ephemeral Ganache chain, and exercises the loan lifecycle, cancellation, invalid input, and unauthorised calls. This was run successfully in the project workspace; run it again yourself and include the output in your submitted test evidence. Its temporary contract address is **not** a persistent deployment address.
-
-| Test case | Input/action | Expected result | Observed result |
+| Current loan state | Action | Permitted wallet | Resulting state |
 | --- | --- | --- | --- |
-| Valid lifecycle | Add item, borrower requests, custodian approves, borrower returns, custodian confirms | Closed loan; item available | To be filled after run |
-| Valid cancellation | Borrower cancels pending request | Item available for another borrower | To be filled after run |
-| Invalid name | Empty item name | Revert: `Name must be 1-80 bytes` | To be filled after run |
-| Invalid due date | Current or past timestamp | Revert: `Due date must be within 30 days` | To be filled after run |
-| Invalid item | Item ID 99 when only one exists | Revert: `Unknown item` | To be filled after run |
-| Double booking | Another borrower requests reserved item | Revert: `Item unavailable` | To be filled after run |
-| Unauthorised add/approve | Borrower wallet calls custodian functions | Revert: `Custodian only` | To be filled after run |
-| Unauthorised cancel | Unrelated wallet cancels pending request | Revert: `Not authorised` | To be filled after run |
-| Unauthorised return | Another wallet marks active loan returned | Revert: `Borrower only` | To be filled after run |
+| No open loan | Request loan | Any wallet except the custodian | Pending |
+| Pending | Approve | Custodian | Active |
+| Pending | Cancel | Requesting borrower or custodian | Cancelled; reservation released |
+| Active | Mark returned | Requesting borrower | ReturnPending |
+| ReturnPending | Confirm return | Custodian | Closed; reservation released |
 
-## Submission
+Disabling an item prevents new requests and approval of pending requests, but an existing active loan can still complete its return. Due dates do not automatically close loans or cancel requests. An expired pending request must be cancelled by its borrower or the custodian to release its reservation. There are no automatic fines, deposits, payments, or scheduled transactions.
 
-Create a GitHub repository such as `campus-gear-lending-dapp` and upload these files, actual deployment details, test results, and genuine screenshots in `evidence/`. Make it accessible to the evaluator. Complete a Word document named `YourName_RegNum_BT_Assignment2.docx` with your name, registration number, assignment title, DApp title, and repository link. Export it as a PDF and submit that PDF to the LMS. The assessor needs a reachable repository, a real deployed address, and actual evidence; these cannot be generated offline.
+## What the smart contract and blockchain do
 
-## References
+The `CampusGearLending` smart contract is the authoritative lending ledger. Each item stores its name, enabled status, and current loan ID. Each loan stores its item ID, borrower address, due timestamp, and status. IDs begin at **1**; a current loan ID of **0** means the item has no open loan. Closed and cancelled loan records remain available.
 
-- [Ethers.js v6 Getting Started](https://docs.ethers.org/v6/getting-started/)
-- [Remix Deploy & Run](https://remix-ide.readthedocs.io/en/latest/run.html)
-- [Remix Solidity Unit Testing](https://remix-ide.readthedocs.io/en/latest/unittesting.html)
+The contract checks the caller through `msg.sender` and validates every state-changing operation. It rejects unknown IDs, empty or oversized equipment names, invalid due dates, duplicate reservations, incorrect loan states, and actions by unauthorised wallets. These checks apply even if someone bypasses the website and calls the contract directly. A reverted operation does not apply its requested state changes.
 
-## Security notes
+MetaMask connects the user's wallet to the interface and signs transactions. Ethers.js translates interface actions into contract calls through the wallet's Ethereum provider. State changes require a confirmed transaction and gas; reading the ledger through view calls does not require a paid transaction. The application waits for transaction confirmation before refreshing its displayed records.
 
-This educational prototype is not audited. Wallet addresses, item labels, and due dates are public. A custodian must verify physical handover and returns off-chain. Avoid personally identifying item names. Do not commit private keys, recovery phrases, passwords, or `node_modules`.
+The contract also emits events when items are added or enabled/disabled, loans are requested, and loan statuses change. Transactions and events provide a history of recorded actions. The interface displays the current ledger by reading `custodian()`, `itemCount()`, `loanCount()`, `getItem()`, and `getLoan()`.
+
+On a public network, item names, wallet addresses, and loan dates are public. Solidity's private arrays do not make blockchain data confidential. The system depends on the custodian for truthful physical-return confirmation and is an educational prototype, not an audited lending service.
+
+## Deployment network and contract address
+
+**Deployment evidence is pending.** The frontend currently has an empty contract address. Its configured chain ID is Sepolia's `11155111`, which is a configuration default and does not establish that a Sepolia deployment exists.
+
+| Deployment field | Recorded value |
+| --- | --- |
+| Intended frontend network | Ethereum Sepolia testnet |
+| Configured decimal chain ID | `11155111` |
+| Actual deployment network | Pending deployment record |
+| Deployed smart contract address | Not yet recorded |
+| Deployment transaction hash | Not yet recorded |
+| Custodian public address | Not yet recorded |
+
+After deployment, replace the pending values above with the actual values and update [the deployment record](DEPLOYMENT.md) and `frontend/config.js` consistently. The automated tests use an ephemeral local Ganache chain; their deployment is not a persistent address for the application.
+
+## Steps to execute the application
+
+You need a browser with MetaMask, test ETH on the selected test network, Python 3 to serve the interface, and internet access for Remix and the frontend's Ethers.js CDN import.
+
+1. Open [Remix](https://remix.ethereum.org/) and copy the source from `contracts/CampusGearLending.sol` into a Solidity file in its workspace.
+2. Select Solidity compiler **0.8.20**, compile `CampusGearLending`, and capture the successful compilation screen.
+3. In MetaMask, select Sepolia and an account funded with test ETH. This deploying account will become the custodian. Alternatively, use a running local Ganache network and its actual RPC URL and chain ID.
+4. In Remix's deployment panel, select the browser-extension/injected MetaMask provider. Verify the account and network, deploy `CampusGearLending` without constructor arguments, and confirm the transaction in MetaMask.
+5. Once confirmed, record the deployed address, network, chain ID, and deployment transaction hash in the section above. Capture the deployment screen.
+6. In `frontend/config.js`, set `CONTRACT_ADDRESS` to the deployed address and `EXPECTED_CHAIN_ID` to the deployment network's decimal chain ID.
+7. From the repository root, start the interface:
+
+   ```sh
+   python3 -m http.server 8000 --directory frontend
+   ```
+
+8. Open `http://localhost:8000` in the browser with MetaMask. Keep the server running while using the application. If using Ganache, keep its node running too.
+
+## Connect MetaMask and interact with the contract
+
+1. Unlock MetaMask and select the network used for deployment. Select the custodian account, then click **Connect MetaMask** on the webpage and approve account access. The application checks the chain ID and whether contract code exists at the configured address.
+2. Verify that the page shows the connected address, **Custodian** role, chain ID, and contract address. Capture the wallet connection screenshot.
+3. Enter an equipment name such as `Camera kit` and select **Add item**. Confirm the transaction in MetaMask and wait for the confirmation message and transaction hash. The new item should appear in the inventory.
+4. Switch MetaMask to a second account for the borrower. Account or network changes reload the page, so click **Connect MetaMask** again as needed. Both accounts need test ETH for their transactions.
+5. Choose the available item and a future due date within 30 days, then select **Request loan** and confirm in MetaMask. The loan should appear as **Pending** and the item as **Reserved**.
+6. Switch back to the custodian, reconnect, and select **Approve** for the request. Confirm the transaction; its state becomes **Active**.
+7. As the borrower, select **Mark returned** after physically returning the item. As the custodian, select **Confirm return** after checking receipt. Confirm each transaction. The loan becomes **Closed** and the enabled item becomes **Available**.
+8. Use **Refresh data** to read the current blockchain records again. Capture a successful transaction with its hash and the populated inventory and loan lists.
+
+A pending request can also be cancelled by its borrower or the custodian. Custodian-only actions remain protected by the contract even when an interface control is visible to another account.
+
+## Test cases and observed results
+
+The repository includes a [recorded local integration-test result](evidence/local-test-results.txt):
+
+```text
+PASS: local Ganache deployment, full lifecycle, cancellation, invalid and unauthorised calls
+```
+
+The observations below refer to that existing local run and the assertions in `tests/integration.cjs`; they are not a new test run, MetaMask test results, or evidence of deployment to Sepolia. The negative-test helper checks that calls throw, but does not assert exact revert messages or mined failed receipts. The listed revert messages are expected from the contract source.
+
+| Category | Test input or action | Expected result | Recorded local observation |
+| --- | --- | --- | --- |
+| Valid | Add `Camera`; request with a due date about one day ahead; approve; mark returned; confirm return | Loan closes and item reservation clears | Passed; status `3` (Closed) and `currentLoanId = 0` asserted |
+| Valid | Request the released item, then cancel as its borrower | Pending request cancelled and reservation clears | Passed; `currentLoanId = 0` asserted |
+| Invalid | Custodian adds an empty name | Reject: `Name must be 1-80 bytes` | Passed; call rejected |
+| Invalid | Request item ID `99` when only one item exists | Reject: `Unknown item` | Passed; call rejected |
+| Invalid | Request with due timestamp `1` (in the past) | Reject: `Due date must be within 30 days` | Passed; call rejected |
+| Invalid | A second borrower requests an already reserved item | Reject: `Item unavailable` | Passed; call rejected |
+| Unauthorised | Non-custodian adds equipment | Reject: `Custodian only` | Passed; call rejected |
+| Unauthorised | Non-custodian approves a pending request | Reject: `Custodian only` | Passed; call rejected |
+| Unauthorised | Unrelated wallet cancels another borrower's request | Reject: `Not authorised` | Passed; call rejected |
+| Unauthorised | Unrelated wallet marks an active loan returned | Reject: `Borrower only` | Passed; call rejected |
+
+To reproduce the local checks, run the following from the repository root with Node.js and npm installed:
+
+```sh
+npm ci
+npm test
+```
+
+For Remix tests, copy the contract and `tests/CampusGearLending_test.sol` into the same workspace, preserving their relative paths. Enable **Solidity Unit Testing**, select the test file, and run it. The plugin supplies `remix_tests.sol`. Capture the actual results; a Remix test run has not been recorded here.
+
+For a manual unauthorised-call demonstration, create a pending request and use Remix to call `approveLoan(loanId)` from a non-custodian account against the deployed contract. Capture the actual error. A gas-estimation rejection is evidence of a rejected call, not a mined failed transaction; label it accordingly. If a transaction is actually mined and fails, record its hash and failed receipt status. Rejecting a MetaMask signature is also distinct from a contract revert.
+
+## Screenshot evidence
+
+**No screenshot files are currently included.** Add genuine captures of the running application and replace each pending entry with an embedded image using the indicated path. The filenames below are planned evidence locations, not existing screenshots.
+
+| Required screenshot | What the capture must show | Planned path | Status |
+| --- | --- | --- | --- |
+| Smart contract compilation | Contract name, Solidity compiler version, and successful compilation in Remix | `evidence/01-compiled.png` | Pending |
+| Smart contract deployment | Deployed contract address, selected network, and confirmed deployment | `evidence/02-deployed.png` | Pending |
+| MetaMask wallet connection | Connected account and role, chain ID, and contract in the interface | `evidence/03-wallet-connected.png` | Pending |
+| Successful transaction | A confirmed contract action and its transaction hash | `evidence/04-successful-transaction.png` | Pending |
+| Failed transaction | Invalid or unauthorised action with its actual error; include hash/status if mined, otherwise label as a pre-submission rejection | `evidence/05-failed-transaction.png` | Pending |
+| Blockchain data in the interface | Populated equipment and loan records, including availability, borrower, due date, and loan status | `evidence/06-blockchain-data.png` | Pending |
+
+For example, once the compilation image exists, embed it with:
+
+```markdown
+![Successful smart contract compilation in Remix](evidence/01-compiled.png)
+```
+
+Deployment details and these six captures are still required to complete the submission evidence. Keep wallet recovery phrases and private keys out of screenshots and repository files.
