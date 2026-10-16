@@ -15,8 +15,11 @@ This record contains the confirmed Sepolia deployment. Fill the remaining fields
 | 3. Approve loan transaction | [`0x6130d85784c1995c4fd99553f0902e4c747ccae998b7e15c8bf996018d0056ac`](https://sepolia.etherscan.io/tx/0x6130d85784c1995c4fd99553f0902e4c747ccae998b7e15c8bf996018d0056ac) |
 | 4. Mark returned transaction | [`0xd4470ff3678b57277e0f17995a8adc3deebab42e0539750913cd99850fed5ba2`](https://sepolia.etherscan.io/tx/0xd4470ff3678b57277e0f17995a8adc3deebab42e0539750913cd99850fed5ba2) |
 | 5. Confirm return transaction | [`0xceeef37341a703f811314eaaa8dc3aae904ea883e60368beea83a57b79e27938`](https://sepolia.etherscan.io/tx/0xceeef37341a703f811314eaaa8dc3aae904ea883e60368beea83a57b79e27938) |
+| Unauthorised action, failed on-chain (`Custodian only`) | [`0x098883fb9ac54d4a4cc8903216de9799b26cf8bfed08075d6f002a7e5207247f`](https://sepolia.etherscan.io/tx/0x098883fb9ac54d4a4cc8903216de9799b26cf8bfed08075d6f002a7e5207247f) |
 
 The address, deploying wallet, and deployment hash are visible in [`assets/02-deployed1.png`](assets/02-deployed1.png); Remix shows the deployed instance in [`assets/02-deployed2.png`](assets/02-deployed2.png). The five interaction hashes above were transcribed from the numbered frontend screenshots in `assets/03-Transaction1.png` through `assets/03-Transaction5.png`. The frontend is configured for this address. The fourth screenshot's notification says “Mark returned confirmed,” but its loan card still reads “Active”; see the [README evidence notes](README.md#screenshot-evidence) for this display discrepancy.
+
+The unauthorised transaction was sent from borrower `0x93b15649f79CFF751b140c7B9E91aB93159E45ad` to the deployed contract address above. Its [explorer capture](assets/07-Unauthorized-AddItem.png) shows a mined failure with the revert reason `Custodian only`. The [Remix test capture](assets/06-Remix-UnitTests.png) separately shows four passing unit tests.
 
 ## Previously reported failed transaction
 

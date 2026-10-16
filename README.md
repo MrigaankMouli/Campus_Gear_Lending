@@ -98,7 +98,7 @@ The repository includes a [recorded local integration-test result](evidence/loca
 PASS: local Ganache deployment, full lifecycle, cancellation, invalid and unauthorised calls
 ```
 
-The observations below refer to that existing local run and the assertions in `tests/integration.cjs`; they are not a new test run, MetaMask test results, or evidence of deployment to Sepolia. The negative-test helper checks that calls throw, but does not assert exact revert messages or mined failed receipts. The listed revert messages are expected from the contract source.
+The observations in the table below refer to that local run and the assertions in `tests/integration.cjs`. The negative-test helper checks that calls throw, but does not assert exact revert messages or mined failed receipts. The listed revert messages are expected from the contract source. Separately, the [Remix IDE test capture](assets/06-Remix-UnitTests.png) shows all four Solidity test functions passing (4 passed, 0 failed), including valid lifecycle, invalid inputs and double booking, unauthorised access, and cancellation.
 
 | Category | Test input or action | Expected result | Recorded local observation |
 | --- | --- | --- | --- |
@@ -120,9 +120,9 @@ npm ci
 npm test
 ```
 
-For Remix tests, copy `contracts/CampusGearLending.sol`, `test-support/BorrowerActor.sol`, and `tests/CampusGearLending_test.sol` into the same workspace, preserving those exact relative paths. Enable **Solidity Unit Testing**, select only `tests/CampusGearLending_test.sol`, and run it. The plugin supplies `remix_tests.sol`. `BorrowerActor` lives outside the test file because its forwarding methods take parameters, which Remix does not allow in a test contract. Capture the actual results; a successful Remix test run has not been recorded here.
+For Remix tests, copy `contracts/CampusGearLending.sol`, `test-support/BorrowerActor.sol`, and `tests/CampusGearLending_test.sol` into the same workspace, preserving those exact relative paths. Enable **Solidity Unit Testing**, select only `tests/CampusGearLending_test.sol`, and run it. The plugin supplies `remix_tests.sol`. `BorrowerActor` lives outside the test file because its forwarding methods take parameters, which Remix does not allow in a test contract. The captured Remix run reports **4 passed, 0 failed**.
 
-For a manual unauthorised-call demonstration, create a pending request and use Remix to call `approveLoan(loanId)` from a non-custodian account against the deployed contract. Capture the actual error. A gas-estimation rejection is evidence of a rejected call, not a mined failed transaction; label it accordingly. If a transaction is actually mined and fails, record its hash and failed receipt status. Rejecting a MetaMask signature is also distinct from a contract revert.
+For a manual unauthorised-call demonstration, the borrower account attempted a custodian-only action against the deployed Sepolia contract. The [mined failed transaction](https://sepolia.etherscan.io/tx/0x098883fb9ac54d4a4cc8903216de9799b26cf8bfed08075d6f002a7e5207247f) shows `Custodian only`, the borrower as sender, and the correct contract as recipient. This is separate from the frontend validation example below, which never submitted a transaction.
 
 ## Screenshot evidence
 
@@ -180,4 +180,14 @@ These are the screenshots committed in `assets/`. The five numbered transaction 
 
 ![Borrower receives a frontend error when trying to add equipment](assets/05-FaliureExample.png)
 
-The repository does not yet show an executed Remix unit-test screenshot or a separate on-chain invalid-call revert. If the submission requires those specific captures, add genuine results and label a pre-submission gas-estimation rejection separately from a mined failed receipt. Keep wallet recovery phrases and private keys out of screenshots and repository files.
+### Remix testing and failed transaction
+
+**Remix Solidity Unit Testing:** The captured run of `CampusGearLending_test.sol` shows green checks for valid lifecycle, invalid input and double booking, unauthorised access, and cancellation. Its summary reads **Passed: 4; Failed: 0**. The invalid and unauthorised tests pass because the contract rejects those operations as expected; they are not failed tests.
+
+![Remix Solidity Unit Testing results with four passing tests and zero failures](assets/06-Remix-UnitTests.png)
+
+**Mined unauthorised transaction:** Account 2 (`0x93b15649f79CFF751b140c7B9E91aB93159E45ad`) attempted an action restricted to the custodian. The Sepolia explorer shows [transaction `0x098883fb…5207247f`](https://sepolia.etherscan.io/tx/0x098883fb9ac54d4a4cc8903216de9799b26cf8bfed08075d6f002a7e5207247f) failed with `Custodian only`; its **To** address is the deployed `0x34dbf27562b0957a5bb2485605f19f52c03676b8`. This is the failed-transaction evidence for the contract.
+
+![Sepolia failed transaction from borrower to CampusGearLending with Custodian only error](assets/07-Unauthorized-AddItem.png)
+
+Keep wallet recovery phrases and private keys out of screenshots and repository files.
