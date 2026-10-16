@@ -123,7 +123,3 @@ The following Sepolia explorer capture is the **failed on-chain transaction** ev
 ![Mined Sepolia transaction rejected with Custodian only](assets/07-Unauthorized-AddItem.png)
 
 For the additional local Ganache integration run, install Node.js and npm and execute `npm ci` followed by `npm test` in the repository root. The saved [local test result](evidence/local-test-results.txt) reports `PASS` for the lifecycle, cancellation, invalid input, and unauthorised checks. That test deploys a separate local instance, not the Sepolia contract.
-
-## 7. Conclusion and limitations
-
-The project meets the assignment's contract, frontend, MetaMask, Sepolia deployment, transaction, blockchain-reading, and valid/invalid/unauthorised testing requirements. The recorded lifecycle ends with an available item, and the mined failed transaction demonstrates that the custodian restriction applies on-chain. The interface does not verify student identity or physical item condition. Public-chain records expose item names, wallet addresses, and due dates; do not put private student information in item names. Never commit private keys, seed phrases, or passwords.
