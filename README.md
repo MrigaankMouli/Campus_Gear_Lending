@@ -120,7 +120,7 @@ npm ci
 npm test
 ```
 
-For Remix tests, copy the contract and `tests/CampusGearLending_test.sol` into the same workspace, preserving their relative paths. Enable **Solidity Unit Testing**, select the test file, and run it. The plugin supplies `remix_tests.sol`. Capture the actual results; a Remix test run has not been recorded here.
+For Remix tests, copy `contracts/CampusGearLending.sol`, `test-support/BorrowerActor.sol`, and `tests/CampusGearLending_test.sol` into the same workspace, preserving those exact relative paths. Enable **Solidity Unit Testing**, select only `tests/CampusGearLending_test.sol`, and run it. The plugin supplies `remix_tests.sol`. `BorrowerActor` lives outside the test file because its forwarding methods take parameters, which Remix does not allow in a test contract. Capture the actual results; a successful Remix test run has not been recorded here.
 
 For a manual unauthorised-call demonstration, create a pending request and use Remix to call `approveLoan(loanId)` from a non-custodian account against the deployed contract. Capture the actual error. A gas-estimation rejection is evidence of a rejected call, not a mined failed transaction; label it accordingly. If a transaction is actually mined and fails, record its hash and failed receipt status. Rejecting a MetaMask signature is also distinct from a contract revert.
 

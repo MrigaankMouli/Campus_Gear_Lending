@@ -3,25 +3,7 @@ pragma solidity ^0.8.20;
 
 import "remix_tests.sol";
 import "../contracts/CampusGearLending.sol";
-
-// Separate contract gives calls a different msg.sender without assuming Remix account indices.
-contract BorrowerActor {
-    function request(CampusGearLending ledger, uint256 itemId, uint256 dueAt) external {
-        ledger.requestLoan(itemId, dueAt);
-    }
-    function returnItem(CampusGearLending ledger, uint256 loanId) external {
-        ledger.markReturned(loanId);
-    }
-    function cancel(CampusGearLending ledger, uint256 loanId) external {
-        ledger.cancelRequest(loanId);
-    }
-    function approve(CampusGearLending ledger, uint256 loanId) external {
-        ledger.approveLoan(loanId);
-    }
-    function add(CampusGearLending ledger, string calldata name) external {
-        ledger.addItem(name);
-    }
-}
+import "../test-support/BorrowerActor.sol";
 
 contract CampusGearLendingTest {
     CampusGearLending ledger;

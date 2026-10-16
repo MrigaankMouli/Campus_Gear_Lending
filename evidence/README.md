@@ -8,6 +8,6 @@ The following captures are already included in `../assets/` and described in the
 4. `../assets/04-MetaMask_Transaction_Ex.png`: the MetaMask signing prompt on Sepolia, before confirmation.
 5. `../assets/05-FaliureExample.png`: a borrower attempting to add equipment and receiving a frontend validation error. This does not show a mined failed transaction or Solidity revert.
 
-Still to capture if required for the submission: the actual Remix Solidity Unit Testing result and a separate invalid or unauthorised contract call with its real revert message. Label an error during gas estimation as a pre-submission rejection rather than a mined failed transaction.
+Still to capture if required for the submission: the actual Remix Solidity Unit Testing result and a separate invalid or unauthorised contract call with its real revert message. The Remix test workspace needs `contracts/CampusGearLending.sol`, `test-support/BorrowerActor.sol`, and `tests/CampusGearLending_test.sol` at those relative paths. Label an error during gas estimation as a pre-submission rejection rather than a mined failed transaction.
 
 Do not include private keys, seed phrases, or passwords in screenshots.
