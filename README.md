@@ -57,7 +57,7 @@ The contract was deployed on Ethereum Sepolia. The confirmed transaction is show
 | Deployment transaction hash | [`0xccebdeeba264f970279a9ddd177866865b2c33037334e15539de04cfe458dc77`](https://sepolia.etherscan.io/tx/0xccebdeeba264f970279a9ddd177866865b2c33037334e15539de04cfe458dc77) |
 | Custodian public address | `0x0f8F283B6A28940617Db23ca41c31b0832A15028` |
 
-See [the deployment record](DEPLOYMENT.md) for interaction hashes still to collect. The automated tests use an ephemeral local Ganache chain; their deployment is not the persistent Sepolia address above.
+See [the deployment record](DEPLOYMENT.md) for the five numbered interaction hashes. The automated tests use an ephemeral local Ganache chain; their deployment is not the persistent Sepolia address above.
 
 ## Steps to execute the application
 
@@ -126,22 +126,58 @@ For a manual unauthorised-call demonstration, create a pending request and use R
 
 ## Screenshot evidence
 
-Three genuine captures are included in `assets/`: compilation, a confirmed Sepolia deployment transaction, and the deployed contract in Remix. The remaining interface and transaction captures should be added after the actions actually occur.
+These are the screenshots committed in `assets/`. The five numbered transaction images follow the actual sequence: add item, request loan, approve, mark returned, confirm return. They show the connected role, Sepolia chain ID, contract, frontend confirmation text, and the resulting inventory or loan display. The transaction hashes below are transcribed from the screenshots and recorded again in [DEPLOYMENT.md](DEPLOYMENT.md).
 
-| Required screenshot | What the capture must show | Planned path | Status |
+### Compilation and deployment
+
+**Compilation:** Remix displays `CampusGearLending` as compiled with Solidity 0.8.34. This screenshot establishes compilation, while the local integration test uses Solidity 0.8.20.
+
+![Remix compiler showing CampusGearLending compiled with Solidity 0.8.34](assets/01-compiled.png)
+
+**Sepolia deployment:** Etherscan displays a successful contract-creation transaction, the custodian wallet, and the deployed contract address. The second capture shows that contract in Remix's deployed contracts panel.
+
+![Successful Sepolia contract creation transaction on Etherscan](assets/02-deployed1.png)
+
+![CampusGearLending listed as a deployed contract in Remix on Sepolia](assets/02-deployed2.png)
+
+### Numbered loan lifecycle
+
+| Step | Screenshot | Visible result | Transaction |
 | --- | --- | --- | --- |
-| Smart contract compilation | Contract name, Solidity compiler version, and successful compilation in Remix | [`assets/01-compiled.png`](assets/01-compiled.png) | Included |
-| Smart contract deployment | Deployed contract address, selected network, and confirmed deployment | [`assets/02-deployed1.png`](assets/02-deployed1.png), [`assets/02-deployed2.png`](assets/02-deployed2.png) | Included |
-| MetaMask wallet connection | Connected account and role, chain ID, and contract in the interface | `evidence/03-wallet-connected.png` | Pending |
-| Successful transaction | A confirmed contract action and its transaction hash | `evidence/04-successful-transaction.png` | Pending |
-| Failed transaction | Invalid or unauthorised action with its actual error; include hash/status if mined, otherwise label as a pre-submission rejection | `evidence/05-failed-transaction.png` | Pending |
-| Blockchain data in the interface | Populated equipment and loan records, including availability, borrower, due date, and loan status | `evidence/06-blockchain-data.png` | Pending |
+| 1. Custodian adds `Whiteboard` | [`03-Transaction1.png`](assets/03-Transaction1.png) | Item #1 is available; no loans are recorded yet | [`0x78578017…d53c119c`](https://sepolia.etherscan.io/tx/0x78578017ce459e4490ff86b72554f19b3eca0a5628c3a3d9afa3d673d53c119c) |
+| 2. Borrower requests item #1 | [`03-Transaction2.png`](assets/03-Transaction2.png) | The selected account is labelled Borrower; loan #1 is Pending and the item is Reserved | [`0xe41b9d99…00a8fa86`](https://sepolia.etherscan.io/tx/0xe41b9d9984e5f5296cf03e45193829d630f5183caeddbc7ff3a7c8a200a8fa86) |
+| 3. Custodian approves loan #1 | [`03-Transaction3.png`](assets/03-Transaction3.png) | Loan #1 is Active and the item remains Reserved | [`0x6130d857…d0056ac`](https://sepolia.etherscan.io/tx/0x6130d85784c1995c4fd99553f0902e4c747ccae998b7e15c8bf996018d0056ac) |
+| 4. Borrower marks it returned | [`03-Transaction4.png`](assets/03-Transaction4.png) | The notification says “Mark returned confirmed”; the loan card in this capture still reads Active | [`0xd4470ff3…fed5ba2`](https://sepolia.etherscan.io/tx/0xd4470ff3678b57277e0f17995a8adc3deebab42e0539750913cd99850fed5ba2) |
+| 5. Custodian confirms receipt | [`03-Transaction5.png`](assets/03-Transaction5.png) | Loan #1 is Closed and item #1 is Available again | [`0xceeef373…9e27938`](https://sepolia.etherscan.io/tx/0xceeef37341a703f811314eaaa8dc3aae904ea883e60368beea83a57b79e27938) |
 
-The compilation and deployment images can be embedded with:
+**1 — Add item.** The custodian's frontend reports a confirmed add-item transaction and displays `Whiteboard` as item #1.
 
-```markdown
-![Successful smart contract compilation in Remix](assets/01-compiled.png)
-![Confirmed Sepolia deployment](assets/02-deployed1.png)
-```
+![Step 1: custodian adds Whiteboard and the item appears as available](assets/03-Transaction1.png)
 
-The wallet connection, successful action, failed action, and populated data captures remain pending, along with their actual interaction transaction hashes. Keep wallet recovery phrases and private keys out of screenshots and repository files.
+**2 — Request loan.** The borrower account is selected in the updated frontend. The confirmed request reserves `Whiteboard` and creates pending loan #1.
+
+![Step 2: borrower request confirmed, item reserved and loan pending](assets/03-Transaction2.png)
+
+**3 — Approve loan.** The custodian account is selected and the confirmed approval leaves the item reserved while loan #1 becomes Active.
+
+![Step 3: custodian approval confirmed and loan active](assets/03-Transaction3.png)
+
+**4 — Mark returned.** The borrower view shows the confirmation message and hash. The loan card still says Active in this particular capture, so it should not be used alone as a screenshot of the ReturnPending display.
+
+![Step 4: borrower mark returned confirmation with the loan card still displaying Active](assets/03-Transaction4.png)
+
+**5 — Confirm return.** The custodian's confirmation closes loan #1 and makes `Whiteboard` available again.
+
+![Step 5: custodian confirmation closes the loan and releases the item](assets/03-Transaction5.png)
+
+### Wallet confirmation and rejected action
+
+**MetaMask transaction request:** The wallet popup shows a Sepolia transaction request from the local frontend to the configured contract, signed with Account 1. Its **Confirm** button is still visible, so this image records the signing prompt rather than a confirmed transaction. The background shows loan #1 as Return pending.
+
+![MetaMask confirmation prompt for a Sepolia contract interaction from the local frontend](assets/04-MetaMask_Transaction_Ex.png)
+
+**Borrower attempts a custodian-only action:** With the borrower account selected, the frontend displays “Only the custodian can add equipment” for the attempted `Failed Item` entry. This is a client-side validation rejection: no transaction hash or mined contract revert is shown. The contract's `onlyCustodian` check independently protects the same action if called directly.
+
+![Borrower receives a frontend error when trying to add equipment](assets/05-FaliureExample.png)
+
+The repository does not yet show an executed Remix unit-test screenshot or a separate on-chain invalid-call revert. If the submission requires those specific captures, add genuine results and label a pre-submission gas-estimation rejection separately from a mined failed receipt. Keep wallet recovery phrases and private keys out of screenshots and repository files.
