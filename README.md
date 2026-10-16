@@ -121,5 +121,3 @@ The frontend also blocks a borrower who tries to add equipment. This is a client
 The following Sepolia explorer capture is the **failed on-chain transaction** evidence. Borrower `0x93b15649f79CFF751b140c7B9E91aB93159E45ad` sent it to the deployed contract at `0x34dbf27562b0957a5bb2485605f19f52c03676b8`. Transaction [`0x098883fb9ac54d4a4cc8903216de9799b26cf8bfed08075d6f002a7e5207247f`](https://sepolia.etherscan.io/tx/0x098883fb9ac54d4a4cc8903216de9799b26cf8bfed08075d6f002a7e5207247f) failed with `Custodian only`.
 
 ![Mined Sepolia transaction rejected with Custodian only](assets/07-Unauthorized-AddItem.png)
-
-For the additional local Ganache integration run, install Node.js and npm and execute `npm ci` followed by `npm test` in the repository root. The saved [local test result](evidence/local-test-results.txt) reports `PASS` for the lifecycle, cancellation, invalid input, and unauthorised checks. That test deploys a separate local instance, not the Sepolia contract.
