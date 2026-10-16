@@ -1,3 +1,2 @@
-// Replace these two values after deploying in Remix. Use the decimal chain ID.
-export const CONTRACT_ADDRESS = "";
-export const EXPECTED_CHAIN_ID = 11155111; // Sepolia. Ganache commonly uses 1337; verify in MetaMask.
+export const CONTRACT_ADDRESS = "0x34dbf27562b0957a5bb2485605f19f52c03676b8";
+export const EXPECTED_CHAIN_ID = 11155111;

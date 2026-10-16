@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-/// @title Campus Gear Lending
-/// @notice A custodian records equipment loans without putting student identity data on-chain.
 contract CampusGearLending {
     address public immutable custodian;
     uint256 public constant MAX_LOAN_DURATION = 30 days;
@@ -100,11 +98,19 @@ contract CampusGearLending {
         emit LoanStatusChanged(loanId, Status.Closed);
     }
 
-    function itemCount() external view returns (uint256) { return items.length; }
-    function loanCount() external view returns (uint256) { return loans.length; }
+    function itemCount() external view returns (uint256) { 
+        return items.length; 
+        }
+    function loanCount() external view returns (uint256) { 
+        return loans.length; 
+        }
 
-    function getItem(uint256 itemId) external view returns (Item memory) { return _item(itemId); }
-    function getLoan(uint256 loanId) external view returns (Loan memory) { return _loan(loanId); }
+    function getItem(uint256 itemId) external view returns (Item memory) { 
+        return _item(itemId); 
+        }
+    function getLoan(uint256 loanId) external view returns (Loan memory) { 
+        return _loan(loanId); 
+        }
 
     function _item(uint256 itemId) internal view returns (Item storage) {
         require(itemId > 0 && itemId <= items.length, "Unknown item");
