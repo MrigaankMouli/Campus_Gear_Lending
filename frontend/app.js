@@ -46,21 +46,45 @@ function errorMessage(error) {
 async function requireNetwork() {
   const network = await provider.getNetwork();
   if (network.chainId !== BigInt(EXPECTED_CHAIN_ID)) throw new Error(`Wrong network. Switch MetaMask to chain ID ${EXPECTED_CHAIN_ID}.`);
-  if (!(await provider.getCode(CONTRACT_ADDRESS)) || await provider.getCode(CONTRACT_ADDRESS) === "0x") throw new Error("No contract at that address on this network.");
+  if (await provider.getCode(CONTRACT_ADDRESS) === "0x") throw new Error("No contract at that address on this network.");
 }
 async function connect() {
   try {
     if (!window.ethereum) throw new Error("Install MetaMask and open this page in its browser.");
     if (!ethers.isAddress(CONTRACT_ADDRESS)) throw new Error("Set a valid deployed address in frontend/config.js first.");
-    await window.ethereum.request({ method: "eth_requestAccounts" });
+    // Re-open the MetaMask account picker even for a previously connected site.
+    await window.ethereum.request({ method: "wallet_requestPermissions", params: [{ eth_accounts: {} }] });
+    const accounts = await window.ethereum.request({ method: "eth_accounts" });
+    if (!accounts.length) throw new Error("No account granted to this site. Select an account in MetaMask.");
+    const selector = $("accountSelect");
+    selector.replaceChildren(...accounts.map((address) => {
+      const option = el("option", "", address);
+      option.value = address;
+      return option;
+    }));
+    selector.disabled = false;
+    $("useAccountBtn").disabled = false;
+    const saved = sessionStorage.getItem("campusGearAccount");
+    selector.value = accounts.find((address) => address.toLowerCase() === saved?.toLowerCase()) || accounts[0];
+    await useSelectedAccount();
+  } catch (err) { notice(errorMessage(err), true); }
+}
+async function useSelectedAccount() {
+  try {
+    const selected = $("accountSelect").value;
+    const accounts = await window.ethereum.request({ method: "eth_accounts" });
+    if (!accounts.some((address) => address.toLowerCase() === selected.toLowerCase())) {
+      throw new Error("This account is not connected. Click Connect / choose accounts and grant it in MetaMask.");
+    }
     provider = new ethers.BrowserProvider(window.ethereum);
     await requireNetwork();
-    signer = await provider.getSigner();
+    signer = await provider.getSigner(selected);
     account = await signer.getAddress();
+    sessionStorage.setItem("campusGearAccount", account);
     contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
     custodian = await contract.custodian();
-    $("connectionText").textContent = `${short(account)} · ${account.toLowerCase() === custodian.toLowerCase() ? "Custodian" : "Borrower"}`;
-    $("networkText").textContent = `Chain ID ${EXPECTED_CHAIN_ID} · Contract ${short(CONTRACT_ADDRESS)}`;
+    $("connectionText").textContent = `${account} · ${account.toLowerCase() === custodian.toLowerCase() ? "Custodian" : "Borrower"}`;
+    $("networkText").textContent = `Chain ID ${EXPECTED_CHAIN_ID} · Contract ${CONTRACT_ADDRESS}`;
     $("refreshBtn").disabled = false;
     notice("Connected. Blockchain records loaded below.");
     await refresh();
@@ -71,6 +95,13 @@ async function send(label, operation) {
   try {
     if (!contract) throw new Error("Connect MetaMask first.");
     await requireNetwork();
+    if ($("accountSelect").value.toLowerCase() !== account.toLowerCase()) {
+      throw new Error("Click Use selected account before sending a transaction.");
+    }
+    const accounts = await window.ethereum.request({ method: "eth_accounts" });
+    if (!accounts.some((address) => address.toLowerCase() === account.toLowerCase())) {
+      throw new Error("Selected account is no longer connected. Choose it again before sending.");
+    }
     busy = true;
     notice(`${label}: confirm in MetaMask…`);
     const tx = await operation();
@@ -125,6 +156,8 @@ async function refresh() {
   } catch (err) { notice(errorMessage(err), true); }
 }
 $("connectBtn").addEventListener("click", connect);
+$("useAccountBtn").addEventListener("click", useSelectedAccount);
+$("accountSelect").addEventListener("change", () => notice("Click Use selected account to switch the frontend signer."));
 $("refreshBtn").addEventListener("click", refresh);
 $("requestForm").addEventListener("submit", (event) => {
   event.preventDefault();
@@ -132,15 +165,25 @@ $("requestForm").addEventListener("submit", (event) => {
   const dueAt = Math.floor(new Date($("dueAt").value).getTime()/1000);
   const seconds = dueAt - Math.floor(Date.now()/1000);
   if (!itemId || !Number.isFinite(seconds) || seconds <= 0 || seconds > 30*86400) { notice("Choose an available item and a due date within 30 days.", true); return; }
+  if (account?.toLowerCase() === custodian?.toLowerCase()) { notice("The custodian cannot borrow. Choose the borrower account above.", true); return; }
   send("Request loan", () => contract.requestLoan(itemId, dueAt));
 });
 $("addForm").addEventListener("submit", (event) => {
   event.preventDefault();
   const name = $("itemName").value.trim();
   if (!name || new TextEncoder().encode(name).length > 80) { notice("Enter an item name of 1 to 80 UTF-8 bytes.", true); return; }
+  if (account?.toLowerCase() !== custodian?.toLowerCase()) { notice("Only the custodian can add equipment. Choose the custodian account above.", true); return; }
   send("Add item", () => contract.addItem(name));
 });
 if (window.ethereum) {
-  window.ethereum.on("accountsChanged", () => { contract = null; location.reload(); });
+  window.ethereum.on("accountsChanged", () => {
+    contract = null; signer = null; account = null;
+    $("accountSelect").replaceChildren(el("option", "", "Click Connect / choose accounts"));
+    $("accountSelect").disabled = true;
+    $("useAccountBtn").disabled = true;
+    $("refreshBtn").disabled = true;
+    $("connectionText").textContent = "Account access changed. Connect again.";
+    notice("Click Connect / choose accounts, then select the wallet you want to use.");
+  });
   window.ethereum.on("chainChanged", () => location.reload());
 }

@@ -1,9 +1,9 @@
 # Screenshot evidence checklist
 
-Save your own screenshots here with the suggested names:
+Compilation and deployment captures are already included in `../assets/`. Save the remaining screenshots here with the suggested names:
 
-1. `01-compiled.png`: Remix compiler success for CampusGearLending.
-2. `02-deployed.png`: Remix deployed contract, network, and address.
+1. `../assets/01-compiled.png`: existing Remix compiler capture.
+2. `../assets/02-deployed1.png` and `../assets/02-deployed2.png`: existing Sepolia confirmation and Remix deployed contract captures.
 3. `03-wallet-connected.png`: frontend connected to MetaMask.
 4. `04-successful-transaction.png`: confirmed transaction/hash in MetaMask or Remix.
 5. `05-failed-transaction.png`: an invalid or unauthorised call and its revert message.
